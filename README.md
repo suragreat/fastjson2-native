@@ -1,0 +1,1 @@
+# fastjson2-native
