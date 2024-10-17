@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns="http://maven.apache.org/POM/4.0.0"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>fastjson2-native</artifactId>
+    <groupId>io.suragreat.issue</groupId>
+    <name>fastjson2-graalvm-native</name>
+    <version>0.0.1</version>
+    <packaging>jar</packaging>
+    <description>
+        To demonstrate fastjson2 does not deserialize boolean field with false value in native image.
+        The root cause is incorrectly Using Unsafe safely in GraalVM Native Image.
+    </description>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>${maven.compiler.source}</maven.compiler.target>
+        <maven-jar-plugin.version>3.4.2</maven-jar-plugin.version>
+        <fastjson2.version>2.0.53</fastjson2.version>
+        <imageName>fastjson2-native</imageName>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.alibaba.fastjson2</groupId>
+            <artifactId>fastjson2</artifactId>
+            <version>${fastjson2.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-launcher</artifactId>
+            <version>1.11.0</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>RELEASE</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <version>${maven-jar-plugin.version}</version>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>io.suragreat.issue.fastjson2.graalvm_native.App</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.10.2</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>build-native</id>
+                                <goals>
+                                    <goal>build</goal>
+                                </goals>
+                                <phase>package</phase>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <agent>
+                                <enabled>true</enabled>
+                                <defaultMode>direct</defaultMode>
+                                <modes>
+                                    <direct>
+                                        config-output-dir=src/main/resources/META-INF/native-image
+                                    </direct>
+
+                                </modes>
+                                <trackReflectionMetadata>true</trackReflectionMetadata>
+                            </agent>
+                            <imageName>my-app</imageName>
+                            <buildArgs>
+                                <buildArg>-H:+ReportExceptionStackTraces</buildArg>
+                                <buildArg>-H:+PrintClassInitialization</buildArg>
+                                <buildArg>--verbose</buildArg>
+                                <buildArg>-Ob</buildArg>
+                                <buildArg>-g</buildArg>
+                            </buildArgs>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+</project>
